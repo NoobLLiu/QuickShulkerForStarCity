@@ -1,0 +1,25 @@
+name: QuickShulkerForStarCity-server
+version: '${version}'
+main: com.starcity.quickshulker.QuickShulkerPlugin
+api-version: '1.21'
+description: Quickly open shulker boxes without placing them
+authors: [StarCity]
+website: https://github.com/StarCity/QuickShulkerForStarCity
+commands:
+  quickshulker:
+    description: Quick Shulker commands
+    usage: /quickshulker [open|reload]
+    aliases: [qs]
+permissions:
+  quickshulker.use:
+    description: Allows using Quick Shulker features
+    default: true
+  quickshulker.open:
+    description: Open shulker boxes from hand
+    default: true
+  quickshulker.command:
+    description: Use Quick Shulker commands
+    default: true
+  quickshulker.reload:
+    description: Reload Quick Shulker configuration
+    default: op

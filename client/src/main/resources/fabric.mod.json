@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "quickshulker_client",
+  "version": "${version}",
+  "name": "QuickShulkerForStarCity Client",
+  "environment": "client",
+  "description": "Client-side companion for QuickShulkerForStarCity server plugin",
+  "authors": ["StarCity"],
+  "contact": {
+    "homepage": "https://github.com/StarCity/QuickShulkerForStarCity"
+  },
+  "license": "MIT",
+  "icon": "assets/quickshulker_client/icon.png",
+  "mixins": ["quickshulker-client.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "~1.21.4",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}
