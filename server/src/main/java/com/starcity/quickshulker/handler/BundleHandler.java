@@ -22,6 +22,9 @@ public class BundleHandler {
         if (shulkerItem == null || insertItem == null || insertItem.isEmpty()) return 0;
         if (!ShulkerUtil.isShulkerBox(shulkerItem)) return 0;
 
+        // 与原版一致：潜影盒不能装潜影盒
+        if (ShulkerUtil.isShulkerBox(insertItem)) return 0;
+
         // 获取潜影盒内部Inventory
         Inventory shulkerInv = getShulkerInventory(shulkerItem);
         if (shulkerInv == null) return 0;
@@ -54,6 +57,9 @@ public class BundleHandler {
                                                 int shulkerSlot, int targetSlot) {
         if (shulkerItem == null) return null;
         if (!ShulkerUtil.isShulkerBox(shulkerItem)) return null;
+
+        // 目标槽位是盒子自身槽位时不处理，防止盒子被取出的物品覆盖（物品丢失）
+        if (targetSlot == shulkerSlot) return null;
 
         Inventory shulkerInv = getShulkerInventory(shulkerItem);
         if (shulkerInv == null) return null;

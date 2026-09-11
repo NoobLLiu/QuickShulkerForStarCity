@@ -30,6 +30,8 @@ public class QuickShulkerPlugin extends JavaPlugin {
 
         // 初始化打开处理器
         openHandler = new OpenHandler(this, pluginConfig, openableRegistry);
+        // 启动GUI内容实时同步任务（防刷兜底 + 手上盒子实时刷新）
+        openHandler.startSyncTask();
 
         // 注册事件监听器
         getServer().getPluginManager().registerEvents(

@@ -70,9 +70,6 @@ play-sound: true
 # 是否允许通过命令打开
 command-open: true
 
-# 打开潜影盒时显示的消息（留空则不显示，支持 & 颜色代码）
-open-message: '&a已打开潜影盒'
-
 # 权限不足时的消息
 no-permission-message: '&c你没有权限使用此功能'
 

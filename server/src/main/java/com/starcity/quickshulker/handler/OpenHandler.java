@@ -5,6 +5,7 @@ import com.starcity.quickshulker.config.PluginConfig;
 import com.starcity.quickshulker.registry.OpenableData;
 import com.starcity.quickshulker.registry.OpenableRegistry;
 import com.starcity.quickshulker.util.ShulkerUtil;
+import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -19,6 +20,10 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class OpenHandler {
 
+    // GUI内容同步周期（tick）：每个周期对比快照，有变化就写回盒NBT，
+    // CraftBukkit会自动把NBT变化同步给客户端，实现接近实时的手上盒子刷新
+    private static final long SYNC_PERIOD_TICKS = 2L;
+
     private final QuickShulkerPlugin plugin;
     private final PluginConfig config;
     private final OpenableRegistry registry;
@@ -30,6 +35,60 @@ public class OpenHandler {
         this.plugin = plugin;
         this.config = config;
         this.registry = registry;
+    }
+
+    /**
+     * 启动GUI内容实时同步任务（防刷兜底 + 手上盒子实时刷新）
+     */
+    public void startSyncTask() {
+        Bukkit.getScheduler().runTaskTimer(plugin, this::syncAll, SYNC_PERIOD_TICKS, SYNC_PERIOD_TICKS);
+    }
+
+    /**
+     * 同步所有打开中的GUI：内容有变化时写回潜影盒NBT
+     */
+    private void syncAll() {
+        for (Map.Entry<UUID, OpenContext> entry : openContexts.entrySet()) {
+            Player player = plugin.getServer().getPlayer(entry.getKey());
+            if (player == null || !player.isOnline()) {
+                continue;
+            }
+            OpenContext context = entry.getValue();
+            if (contentsChanged(context.getLastSavedContents(), context.getShulkerInventory().getContents())) {
+                saveShulkerContents(player, context);
+            }
+        }
+    }
+
+    /**
+     * 对比上次已保存的快照与当前GUI内容是否不同
+     */
+    private static boolean contentsChanged(ItemStack[] lastSaved, ItemStack[] current) {
+        if (lastSaved == null) return true;
+        if (lastSaved.length != current.length) return true;
+        for (int i = 0; i < current.length; i++) {
+            ItemStack oldStack = lastSaved[i];
+            ItemStack newStack = current[i];
+            boolean oldEmpty = oldStack == null || oldStack.isEmpty();
+            boolean newEmpty = newStack == null || newStack.isEmpty();
+            if (oldEmpty && newEmpty) continue;
+            if (oldEmpty != newEmpty) return true;
+            if (!oldStack.isSimilar(newStack) || oldStack.getAmount() != newStack.getAmount()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 深拷贝一份内容快照
+     */
+    private static ItemStack[] cloneContents(ItemStack[] contents) {
+        ItemStack[] copy = new ItemStack[contents.length];
+        for (int i = 0; i < contents.length; i++) {
+            copy[i] = contents[i] == null ? null : contents[i].clone();
+        }
+        return copy;
     }
 
     /**
@@ -68,12 +127,16 @@ public class OpenHandler {
         // 创建潜影盒GUI
         Inventory shulkerInv = ShulkerUtil.createShulkerInventory(shulkerItem, title);
 
-        // 记录打开上下文
+        // 记录打开上下文（保存初始快照，供实时同步对比）
         OpenContext context = new OpenContext(player.getUniqueId(), slotIndex, shulkerItem.clone(), shulkerInv);
+        context.setLastSavedContents(cloneContents(shulkerInv.getContents()));
         openContexts.put(player.getUniqueId(), context);
 
-        // 打开GUI
-        player.openInventory(shulkerInv);
+        // 打开GUI；若被其他插件取消（返回null），回滚上下文避免留下无主状态
+        if (player.openInventory(shulkerInv) == null) {
+            openContexts.remove(player.getUniqueId());
+            return false;
+        }
 
         // 播放打开音效
         if (config.isPlaySound()) {
@@ -110,7 +173,8 @@ public class OpenHandler {
         // 获取当前槽位的物品（可能已被移动）
         ItemStack currentItem = getItemFromSlot(player, slotIndex);
 
-        // 如果物品类型变了（被移走了），不保存
+        // 如果物品类型变了（被移走了），以世界现状为准：
+        // 不写回、也不另找位置发放，避免把内容写进错误的盒子造成复制
         if (currentItem == null || currentItem.getType() != originalItem.getType()) {
             return;
         }
@@ -118,8 +182,11 @@ public class OpenHandler {
         // 将GUI中的物品写回潜影盒NBT
         ShulkerUtil.saveShulkerContents(currentItem, shulkerInv.getContents());
 
-        // 更新玩家背包中的物品
+        // 更新玩家背包中的物品（同时触发客户端同步，刷新手上盒子内容）
         setItemInSlot(player, slotIndex, currentItem);
+
+        // 刷新快照
+        context.setLastSavedContents(cloneContents(shulkerInv.getContents()));
     }
 
     private ItemStack getItemFromSlot(Player player, int slot) {
@@ -180,6 +247,7 @@ public class OpenHandler {
         private final int slotIndex;
         private final ItemStack originalItem;
         private final Inventory shulkerInventory;
+        private ItemStack[] lastSavedContents;
 
         public OpenContext(UUID playerUUID, int slotIndex, ItemStack originalItem, Inventory shulkerInventory) {
             this.playerUUID = playerUUID;
@@ -192,5 +260,7 @@ public class OpenHandler {
         public int getSlotIndex() { return slotIndex; }
         public ItemStack getOriginalItem() { return originalItem; }
         public Inventory getShulkerInventory() { return shulkerInventory; }
+        public ItemStack[] getLastSavedContents() { return lastSavedContents; }
+        public void setLastSavedContents(ItemStack[] lastSavedContents) { this.lastSavedContents = lastSavedContents; }
     }
 }

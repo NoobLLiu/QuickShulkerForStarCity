@@ -61,6 +61,9 @@ public class PluginMessageListener implements org.bukkit.plugin.messaging.Plugin
     }
 
     private void handleBundleInsert(Player player, int shulkerSlot, int insertSlot) {
+        // GUI打开期间禁止直接存取，防止绕过GUI防刷逻辑导致内容覆盖/丢失
+        if (openHandler.getOpenContext(player.getUniqueId()) != null) return;
+
         var shulkerItem = player.getInventory().getItem(shulkerSlot);
         var insertItem = player.getInventory().getItem(insertSlot);
 
@@ -72,6 +75,9 @@ public class PluginMessageListener implements org.bukkit.plugin.messaging.Plugin
     }
 
     private void handleBundleExtract(Player player, int shulkerSlot, int targetSlot) {
+        // GUI打开期间禁止直接存取，防止绕过GUI防刷逻辑导致内容覆盖/丢失
+        if (openHandler.getOpenContext(player.getUniqueId()) != null) return;
+
         var shulkerItem = player.getInventory().getItem(shulkerSlot);
 
         if (shulkerItem == null) return;

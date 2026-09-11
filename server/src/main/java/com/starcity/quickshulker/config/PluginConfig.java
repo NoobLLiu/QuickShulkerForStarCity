@@ -10,7 +10,6 @@ public class PluginConfig {
     private boolean rightClickToOpen;
     private boolean playSound;
     private boolean commandOpen;
-    private String openMessage;
     private String noPermissionMessage;
     private String reloadMessage;
     private String notShulkerMessage;
@@ -26,7 +25,6 @@ public class PluginConfig {
         rightClickToOpen = plugin.getConfig().getBoolean("right-click-to-open", true);
         playSound = plugin.getConfig().getBoolean("play-sound", true);
         commandOpen = plugin.getConfig().getBoolean("command-open", true);
-        openMessage = colorize(plugin.getConfig().getString("open-message", "&a已打开潜影盒"));
         noPermissionMessage = colorize(plugin.getConfig().getString("no-permission-message", "&c你没有权限使用此功能"));
         reloadMessage = colorize(plugin.getConfig().getString("reload-message", "&a配置已重载"));
         notShulkerMessage = colorize(plugin.getConfig().getString("not-shulker-message", "&c你手中没有潜影盒"));
@@ -41,7 +39,6 @@ public class PluginConfig {
     public boolean isRightClickToOpen() { return rightClickToOpen; }
     public boolean isPlaySound() { return playSound; }
     public boolean isCommandOpen() { return commandOpen; }
-    public String getOpenMessage() { return openMessage; }
     public String getNoPermissionMessage() { return noPermissionMessage; }
     public String getReloadMessage() { return reloadMessage; }
     public String getNotShulkerMessage() { return notShulkerMessage; }
