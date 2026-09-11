@@ -5,10 +5,15 @@ plugins {
 repositories {
     mavenCentral()
     maven { url = 'https://repo.papermc.io/repository/maven-public/' }
+    // MGActivitys：若私服有内部 Maven 仓库，在此添加；否则将 jar 放入 server/libs/ 目录
+    flatDir { dirs 'libs' }
 }
 
 dependencies {
     compileOnly 'io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT'
+    // MGActivitys 成长值 API（仅编译时引入，不打入最终 jar）
+    // 使用方式：将 MGActivitys-xxx.jar 复制到 server/libs/ 目录，取消下方注释并替换版本号
+    // compileOnly files('libs/MGActivitys-1.0.0.jar')
 }
 
 tasks.withType(JavaCompile).configureEach {

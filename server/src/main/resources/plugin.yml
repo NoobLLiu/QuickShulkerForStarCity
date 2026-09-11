@@ -3,6 +3,7 @@ version: '${version}'
 main: com.starcity.quickshulker.QuickShulkerPlugin
 api-version: '1.21'
 description: Quickly open shulker boxes without placing them
+softdepend: [MGActivitys]
 authors: [StarCity]
 website: https://github.com/StarCity/QuickShulkerForStarCity
 commands:

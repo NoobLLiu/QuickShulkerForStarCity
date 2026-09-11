@@ -2,6 +2,7 @@ package com.starcity.quickshulker.command;
 
 import com.starcity.quickshulker.QuickShulkerPlugin;
 import com.starcity.quickshulker.config.ClickOpenManager;
+import com.starcity.quickshulker.config.GrowthUnlockManager;
 import com.starcity.quickshulker.config.PluginConfig;
 import com.starcity.quickshulker.handler.OpenHandler;
 import com.starcity.quickshulker.registry.OpenableRegistry;
@@ -25,6 +26,7 @@ public class QuickShulkerCommand implements CommandExecutor, TabCompleter {
     private final OpenHandler openHandler;
     private final OpenableRegistry registry;
     private final ClickOpenManager clickOpenManager;
+    private final GrowthUnlockManager growthUnlockManager;
 
     private static final List<String> SUB_COMMANDS = Arrays.asList("open", "clickopen", "reload");
 
@@ -36,6 +38,7 @@ public class QuickShulkerCommand implements CommandExecutor, TabCompleter {
         this.openHandler = openHandler;
         this.registry = registry;
         this.clickOpenManager = clickOpenManager;
+        this.growthUnlockManager = plugin.getGrowthUnlockManager();
     }
 
     @Override
@@ -71,6 +74,11 @@ public class QuickShulkerCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
+        // 成长值门槛检查
+        if (!growthUnlockManager.checkAndNotify(player)) {
+            return;
+        }
+
         if (!openHandler.openShulkerInHand(player)) {
             player.sendMessage(config.getNotShulkerMessage());
         }
@@ -87,6 +95,11 @@ public class QuickShulkerCommand implements CommandExecutor, TabCompleter {
 
         if (!player.hasPermission("quickshulker.clickopen")) {
             player.sendMessage(config.getNoPermissionMessage());
+            return;
+        }
+
+        // 成长值门槛检查
+        if (!growthUnlockManager.checkAndNotify(player)) {
             return;
         }
 
