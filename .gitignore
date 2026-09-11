@@ -25,8 +25,3 @@ Thumbs.db
 # Server
 server/run/
 server/build/
-
-# Client
-client/run/
-client/build/
-client/.gradle/

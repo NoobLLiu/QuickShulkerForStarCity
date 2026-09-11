@@ -13,7 +13,6 @@ public class PluginConfig {
     private String noPermissionMessage;
     private String reloadMessage;
     private String notShulkerMessage;
-    private String pluginMessageChannel;
 
     public PluginConfig(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -28,7 +27,6 @@ public class PluginConfig {
         noPermissionMessage = colorize(plugin.getConfig().getString("no-permission-message", "&c你没有权限使用此功能"));
         reloadMessage = colorize(plugin.getConfig().getString("reload-message", "&a配置已重载"));
         notShulkerMessage = colorize(plugin.getConfig().getString("not-shulker-message", "&c你手中没有潜影盒"));
-        pluginMessageChannel = plugin.getConfig().getString("plugin-message-channel", "quickshulker:main");
     }
 
     private String colorize(String msg) {
@@ -42,5 +40,4 @@ public class PluginConfig {
     public String getNoPermissionMessage() { return noPermissionMessage; }
     public String getReloadMessage() { return reloadMessage; }
     public String getNotShulkerMessage() { return notShulkerMessage; }
-    public String getPluginMessageChannel() { return pluginMessageChannel; }
 }

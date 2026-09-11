@@ -17,6 +17,3 @@ reload-message: '&a配置已重载'
 
 # 不是潜影盒的提示
 not-shulker-message: '&c你手中没有潜影盒'
-
-# 客户端Mod高级功能的频道名 (需要与客户端Mod一致)
-plugin-message-channel: 'quickshulker:main'

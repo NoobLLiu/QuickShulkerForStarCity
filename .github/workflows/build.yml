@@ -29,17 +29,8 @@ jobs:
       - name: Build Server Plugin
         run: ./gradlew :server:build
 
-      - name: Build Client Mod
-        run: ./gradlew :client:build
-
       - name: Upload Server Plugin artifact
         uses: actions/upload-artifact@v4
         with:
           name: QuickShulkerForStarCity-server
           path: server/build/libs/*.jar
-
-      - name: Upload Client Mod artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: QuickShulkerForStarCity-client
-          path: client/build/libs/*.jar

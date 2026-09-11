@@ -7,7 +7,6 @@ import com.starcity.quickshulker.handler.OpenHandler;
 import com.starcity.quickshulker.listener.InventoryListener;
 import com.starcity.quickshulker.listener.KyrptonaughtPacketListener;
 import com.starcity.quickshulker.listener.PlayerInteractListener;
-import com.starcity.quickshulker.listener.PluginMessageListener;
 import com.starcity.quickshulker.listener.ShulkerClickOpenListener;
 import com.starcity.quickshulker.registry.OpenableRegistry;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -55,12 +54,6 @@ public class QuickShulkerPlugin extends JavaPlugin {
                 openableRegistry, clickOpenManager);
         getCommand("quickshulker").setExecutor(commandExecutor);
         getCommand("quickshulker").setTabCompleter(commandExecutor);
-
-        // 注册插件消息通道 (客户端Mod高级功能)
-        getServer().getMessenger().registerIncomingPluginChannel(this,
-                pluginConfig.getPluginMessageChannel(), new PluginMessageListener(this, openHandler, openableRegistry));
-        getServer().getMessenger().registerOutgoingPluginChannel(this,
-                pluginConfig.getPluginMessageChannel());
 
         // 注册 kyrptonaught quickshulker 协议（litematica-printer INVOKE 方案）
         getServer().getMessenger().registerIncomingPluginChannel(this,
