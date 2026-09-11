@@ -1,6 +1,7 @@
 package com.starcity.quickshulker.command;
 
 import com.starcity.quickshulker.QuickShulkerPlugin;
+import com.starcity.quickshulker.config.ClickOpenManager;
 import com.starcity.quickshulker.config.PluginConfig;
 import com.starcity.quickshulker.handler.OpenHandler;
 import com.starcity.quickshulker.registry.OpenableRegistry;
@@ -23,15 +24,18 @@ public class QuickShulkerCommand implements CommandExecutor, TabCompleter {
     private final PluginConfig config;
     private final OpenHandler openHandler;
     private final OpenableRegistry registry;
+    private final ClickOpenManager clickOpenManager;
 
-    private static final List<String> SUB_COMMANDS = Arrays.asList("open", "reload");
+    private static final List<String> SUB_COMMANDS = Arrays.asList("open", "clickopen", "reload");
 
     public QuickShulkerCommand(QuickShulkerPlugin plugin, PluginConfig config,
-                                OpenHandler openHandler, OpenableRegistry registry) {
+                                OpenHandler openHandler, OpenableRegistry registry,
+                                ClickOpenManager clickOpenManager) {
         this.plugin = plugin;
         this.config = config;
         this.openHandler = openHandler;
         this.registry = registry;
+        this.clickOpenManager = clickOpenManager;
     }
 
     @Override
@@ -43,6 +47,7 @@ public class QuickShulkerCommand implements CommandExecutor, TabCompleter {
 
         switch (args[0].toLowerCase()) {
             case "open" -> handleOpen(sender);
+            case "clickopen" -> handleClickOpen(sender, args);
             case "reload" -> handleReload(sender);
             default -> sendHelp(sender);
         }
@@ -71,6 +76,41 @@ public class QuickShulkerCommand implements CommandExecutor, TabCompleter {
         }
     }
 
+    /**
+     * 处理点击打开(B 方案)开关：/qs clickopen [on|off]
+     */
+    private void handleClickOpen(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage("§c此命令只能由玩家执行");
+            return;
+        }
+
+        if (!player.hasPermission("quickshulker.clickopen")) {
+            player.sendMessage(config.getNoPermissionMessage());
+            return;
+        }
+
+        boolean now = clickOpenManager.isEnabled(player.getUniqueId());
+        if (args.length >= 2) {
+            switch (args[1].toLowerCase()) {
+                case "on", "enable" -> now = true;
+                case "off", "disable" -> now = false;
+                case "toggle" -> now = !now;
+                default -> {
+                    player.sendMessage("§c用法: /qs clickopen [on|off|toggle]");
+                    return;
+                }
+            }
+        } else {
+            now = !now; // 无参数时切换
+        }
+
+        clickOpenManager.setEnabled(player.getUniqueId(), now);
+        player.sendMessage(now
+                ? "§a已开启点击打开潜影盒（在背包界面右键单个潜影盒即可打开）"
+                : "§7已关闭点击打开潜影盒");
+    }
+
     private void handleReload(CommandSender sender) {
         if (!sender.hasPermission("quickshulker.reload")) {
             sender.sendMessage(config.getNoPermissionMessage());
@@ -84,6 +124,7 @@ public class QuickShulkerCommand implements CommandExecutor, TabCompleter {
     private void sendHelp(CommandSender sender) {
         sender.sendMessage("§6===== QuickShulkerForStarCity =====");
         sender.sendMessage("§e/qs open §7- 打开手中的潜影盒");
+        sender.sendMessage("§e/qs clickopen [on|off] §7- 开关背包右键点击打开潜影盒");
         sender.sendMessage("§e/qs reload §7- 重载配置文件");
     }
 
