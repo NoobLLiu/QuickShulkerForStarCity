@@ -2,6 +2,7 @@ package com.starcity.quickshulker.client.mixin;
 
 import com.starcity.quickshulker.client.ClientPacketSender;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.inventory.Slot;
@@ -19,24 +20,24 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class HandledScreenMixin {
 
     @Shadow
-    protected Slot focusedSlot;
+    protected Slot hoveredSlot;
 
     /**
      * 拦截鼠标点击事件
      * 右键点击玩家背包中的潜影盒时，发送打开请求
      */
     @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
-    private void onMouseClicked(double mouseX, double mouseY, int button, CallbackInfoReturnable<Boolean> cir) {
+    private void onMouseClicked(MouseButtonEvent event, boolean bl, CallbackInfoReturnable<Boolean> cir) {
         // 只处理右键点击 (button == 1)
-        if (button != 1) return;
+        if (event.button() != 1) return;
 
         // 检查是否有焦点槽位
-        if (this.focusedSlot == null) return;
+        if (this.hoveredSlot == null) return;
 
         // 检查是否在玩家背包区域
-        if (!(this.focusedSlot.container instanceof Inventory)) return;
+        if (!(this.hoveredSlot.container instanceof Inventory)) return;
 
-        ItemStack stack = this.focusedSlot.getItem();
+        ItemStack stack = this.hoveredSlot.getItem();
         if (stack == null || stack.isEmpty()) return;
 
         // 检查是否是潜影盒
@@ -46,7 +47,7 @@ public abstract class HandledScreenMixin {
         if (stack.getCount() != 1) return;
 
         // 发送打开请求到服务端
-        ClientPacketSender.sendOpenPacket(this.focusedSlot.getContainerSlot());
+        ClientPacketSender.sendOpenPacket(this.hoveredSlot.getContainerSlot());
 
         // 取消原始点击事件
         cir.setReturnValue(true);

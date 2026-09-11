@@ -5,10 +5,9 @@ import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import io.netty.buffer.Unpooled;
 
 /**
@@ -16,7 +15,7 @@ import io.netty.buffer.Unpooled;
  */
 public class ClientPacketSender {
 
-    private static final ResourceLocation CHANNEL = ResourceLocation.fromNamespaceAndPath("quickshulker", "main");
+    private static final Identifier CHANNEL = Identifier.fromNamespaceAndPath("quickshulker", "main");
 
     /**
      * 发送打开潜影盒请求到服务端
@@ -37,7 +36,7 @@ public class ClientPacketSender {
         }
 
         // 发送主手槽位
-        int slot = player.getInventory().selected;
+        int slot = player.getInventory().getSelectedSlot();
         sendOpenPacket(slot);
     }
 
@@ -85,7 +84,7 @@ public class ClientPacketSender {
     /**
      * 简单的自定义Payload实现
      */
-    private record SimplePayload(ResourceLocation id, FriendlyByteBuf data) implements CustomPacketPayload {
+    private record SimplePayload(Identifier id, FriendlyByteBuf data) implements CustomPacketPayload {
         @Override
         public Type<? extends CustomPacketPayload> type() {
             return new Type<>(id);
