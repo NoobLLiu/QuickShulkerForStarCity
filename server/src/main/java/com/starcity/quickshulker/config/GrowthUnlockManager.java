@@ -94,7 +94,7 @@ public class GrowthUnlockManager {
 
         // API 不可用（返回 -1）时视为未解锁
         if (growth < 0) {
-            if (config.getUnlockEnabled()) {
+            if (config.isUnlockEnabled()) {
                 player.sendMessage(formatMessage(config.getLockedMessage(),
                         config.getUnlockRequiredGrowth(), 0));
             }
