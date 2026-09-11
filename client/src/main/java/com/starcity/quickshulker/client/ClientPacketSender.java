@@ -1,7 +1,6 @@
 package com.starcity.quickshulker.client;
 
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.FriendlyByteBuf;
@@ -21,12 +20,9 @@ public class ClientPacketSender {
      * 发送打开潜影盒请求到服务端
      */
     public static void sendOpenRequest(Player player) {
-        // 获取玩家主手物品
         ItemStack mainHand = player.getItemInHand(InteractionHand.MAIN_HAND);
 
-        // 检查是否是潜影盒
         if (!isShulkerBox(mainHand)) {
-            // 检查副手
             ItemStack offHand = player.getItemInHand(InteractionHand.OFF_HAND);
             if (isShulkerBox(offHand)) {
                 sendOpenPacket(40); // 40 = 副手槽位
@@ -35,7 +31,6 @@ public class ClientPacketSender {
             return;
         }
 
-        // 发送主手槽位
         int slot = player.getInventory().getSelectedSlot();
         sendOpenPacket(slot);
     }

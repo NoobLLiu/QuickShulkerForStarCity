@@ -11,7 +11,6 @@ import org.lwjgl.glfw.GLFW;
 public class QuickShulkerClientMod implements ClientModInitializer {
 
     public static final String MOD_ID = "quickshulker_client";
-    public static final String CHANNEL = "quickshulker:main";
 
     private static final KeyMapping.Category CATEGORY =
             new KeyMapping.Category(Identifier.fromNamespaceAndPath(MOD_ID, "quickshulker"));
