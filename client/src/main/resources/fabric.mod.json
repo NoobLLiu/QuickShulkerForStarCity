@@ -11,6 +11,9 @@
   },
   "license": "MIT",
   "icon": "assets/quickshulker_client/icon.png",
+  "entrypoints": {
+    "client": ["com.starcity.quickshulker.client.QuickShulkerClientMod"]
+  },
   "mixins": ["quickshulker-client.mixins.json"],
   "depends": {
     "fabricloader": ">=0.18.0",
