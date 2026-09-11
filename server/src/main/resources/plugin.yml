@@ -8,7 +8,7 @@ website: https://github.com/StarCity/QuickShulkerForStarCity
 commands:
   quickshulker:
     description: Quick Shulker commands
-    usage: /quickshulker [open|reload]
+    usage: /quickshulker [open|clickopen|reload]
     aliases: [qs]
 permissions:
   quickshulker.use:
@@ -19,6 +19,9 @@ permissions:
     default: true
   quickshulker.command:
     description: Use Quick Shulker commands
+    default: true
+  quickshulker.clickopen:
+    description: Toggle clicking shulker boxes to open them in inventory
     default: true
   quickshulker.reload:
     description: Reload Quick Shulker configuration
