@@ -66,11 +66,7 @@ public class QuickShulkerCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        if (openHandler.openShulkerInHand(player)) {
-            if (!config.getOpenMessage().isEmpty()) {
-                player.sendMessage(config.getOpenMessage());
-            }
-        } else {
+        if (!openHandler.openShulkerInHand(player)) {
             player.sendMessage(config.getNotShulkerMessage());
         }
     }

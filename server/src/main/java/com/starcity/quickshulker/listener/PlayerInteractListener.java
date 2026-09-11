@@ -4,6 +4,7 @@ import com.starcity.quickshulker.QuickShulkerPlugin;
 import com.starcity.quickshulker.config.PluginConfig;
 import com.starcity.quickshulker.handler.OpenHandler;
 import com.starcity.quickshulker.registry.OpenableRegistry;
+import io.papermc.paper.event.player.PlayerPickItemEvent;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -60,11 +61,17 @@ public class PlayerInteractListener implements Listener {
 
         // 打开潜影盒
         if (openHandler.openShulkerInHand(player)) {
-            // 发送消息
-            if (!config.getOpenMessage().isEmpty()) {
-                player.sendMessage(config.getOpenMessage());
-            }
             // 取消事件，防止触发其他右键行为
+            event.setCancelled(true);
+        }
+    }
+
+    /**
+     * GUI打开期间禁止中键选取（点击选取可能把正在打开的盒子换走，导致内容串盒）
+     */
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onPlayerPickItem(PlayerPickItemEvent event) {
+        if (openHandler.getOpenContext(event.getPlayer().getUniqueId()) != null) {
             event.setCancelled(true);
         }
     }
