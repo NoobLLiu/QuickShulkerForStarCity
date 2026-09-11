@@ -1,6 +1,7 @@
 package com.starcity.quickshulker.listener;
 
 import com.starcity.quickshulker.QuickShulkerPlugin;
+import com.starcity.quickshulker.config.GrowthUnlockManager;
 import com.starcity.quickshulker.config.PluginConfig;
 import com.starcity.quickshulker.handler.OpenHandler;
 import com.starcity.quickshulker.registry.OpenableRegistry;
@@ -22,6 +23,7 @@ public class PlayerInteractListener implements Listener {
     private final PluginConfig config;
     private final OpenHandler openHandler;
     private final OpenableRegistry registry;
+    private final GrowthUnlockManager growthUnlockManager;
 
     public PlayerInteractListener(QuickShulkerPlugin plugin, PluginConfig config,
                                    OpenHandler openHandler, OpenableRegistry registry) {
@@ -29,6 +31,7 @@ public class PlayerInteractListener implements Listener {
         this.config = config;
         this.openHandler = openHandler;
         this.registry = registry;
+        this.growthUnlockManager = plugin.getGrowthUnlockManager();
     }
 
     @EventHandler(priority = EventPriority.NORMAL)
@@ -56,6 +59,11 @@ public class PlayerInteractListener implements Listener {
             if (!config.getNoPermissionMessage().isEmpty()) {
                 player.sendMessage(config.getNoPermissionMessage());
             }
+            return;
+        }
+
+        // 成长值门槛检查
+        if (!growthUnlockManager.checkAndNotify(player)) {
             return;
         }
 

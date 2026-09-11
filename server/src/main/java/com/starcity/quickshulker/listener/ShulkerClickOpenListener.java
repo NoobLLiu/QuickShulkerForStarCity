@@ -2,6 +2,7 @@ package com.starcity.quickshulker.listener;
 
 import com.starcity.quickshulker.QuickShulkerPlugin;
 import com.starcity.quickshulker.config.ClickOpenManager;
+import com.starcity.quickshulker.config.GrowthUnlockManager;
 import com.starcity.quickshulker.handler.OpenHandler;
 import com.starcity.quickshulker.registry.OpenableRegistry;
 import org.bukkit.entity.Player;
@@ -30,6 +31,7 @@ public class ShulkerClickOpenListener implements Listener {
     private final ClickOpenManager clickOpenManager;
     private final OpenHandler openHandler;
     private final OpenableRegistry registry;
+    private final GrowthUnlockManager growthUnlockManager;
 
     public ShulkerClickOpenListener(QuickShulkerPlugin plugin, ClickOpenManager clickOpenManager,
                                     OpenHandler openHandler, OpenableRegistry registry) {
@@ -37,6 +39,7 @@ public class ShulkerClickOpenListener implements Listener {
         this.clickOpenManager = clickOpenManager;
         this.openHandler = openHandler;
         this.registry = registry;
+        this.growthUnlockManager = plugin.getGrowthUnlockManager();
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -55,6 +58,9 @@ public class ShulkerClickOpenListener implements Listener {
 
         ItemStack item = event.getCurrentItem();
         if (item == null || !registry.isOpenable(item)) return;
+
+        // 成长值门槛检查
+        if (!growthUnlockManager.checkAndNotify(player)) return;
 
         // 点击的槽位即玩家背包索引（下方区域 rawSlot 对应 PlayerInventory 0-35）
         int invSlot = event.getSlot();

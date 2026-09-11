@@ -1,6 +1,7 @@
 package com.starcity.quickshulker.listener;
 
 import com.starcity.quickshulker.QuickShulkerPlugin;
+import com.starcity.quickshulker.config.GrowthUnlockManager;
 import com.starcity.quickshulker.handler.OpenHandler;
 import com.starcity.quickshulker.registry.OpenableRegistry;
 import org.bukkit.entity.Player;
@@ -25,11 +26,13 @@ public class KyrptonaughtPacketListener implements org.bukkit.plugin.messaging.P
     private final QuickShulkerPlugin plugin;
     private final OpenHandler openHandler;
     private final OpenableRegistry registry;
+    private final GrowthUnlockManager growthUnlockManager;
 
     public KyrptonaughtPacketListener(QuickShulkerPlugin plugin, OpenHandler openHandler, OpenableRegistry registry) {
         this.plugin = plugin;
         this.openHandler = openHandler;
         this.registry = registry;
+        this.growthUnlockManager = plugin.getGrowthUnlockManager();
     }
 
     @Override
@@ -49,6 +52,11 @@ public class KyrptonaughtPacketListener implements org.bukkit.plugin.messaging.P
 
             ItemStack item = getItemInSlot(player, invSlot);
             if (item == null || !registry.isOpenable(item)) {
+                return;
+            }
+
+            // 成长值门槛检查
+            if (!growthUnlockManager.checkAndNotify(player)) {
                 return;
             }
 
