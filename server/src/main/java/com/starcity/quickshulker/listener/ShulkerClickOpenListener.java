@@ -55,7 +55,7 @@ public class ShulkerClickOpenListener implements Listener {
 
         // 只处理玩家自己的原版背包界面，不拦截箱子等容器里的普通右键。
         InventoryView view = event.getView();
-        if (view.getType() != InventoryType.CRAFTING
+        if ((view.getType() != InventoryType.CRAFTING && view.getType() != InventoryType.CREATIVE)
                 || view.getBottomInventory() != player.getInventory()) return;
 
         if (!(event.getClickedInventory() instanceof PlayerInventory)) return;
@@ -84,7 +84,8 @@ public class ShulkerClickOpenListener implements Listener {
             }
 
             InventoryView currentView = player.getOpenInventory();
-            if (currentView.getType() != InventoryType.CRAFTING
+            if ((currentView.getType() != InventoryType.CRAFTING
+                    && currentView.getType() != InventoryType.CREATIVE)
                     || currentView.getBottomInventory() != player.getInventory()) {
                 return;
             }

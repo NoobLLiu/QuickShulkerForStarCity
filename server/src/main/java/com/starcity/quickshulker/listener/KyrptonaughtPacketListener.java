@@ -8,6 +8,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.InventoryView;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -60,9 +61,7 @@ public class KyrptonaughtPacketListener implements org.bukkit.plugin.messaging.P
     }
 
     private void openRequestedSlot(Player player, int windowSlot) {
-        if (!player.isOnline()
-                || player.getOpenInventory().getType() != InventoryType.CRAFTING
-                || player.getOpenInventory().getBottomInventory() != player.getInventory()) {
+        if (!player.isOnline() || !isPlayerInventoryView(player)) {
             return;
         }
 
@@ -88,6 +87,12 @@ public class KyrptonaughtPacketListener implements org.bukkit.plugin.messaging.P
         }
 
         openHandler.openShulker(player, item, invSlot);
+    }
+
+    private static boolean isPlayerInventoryView(Player player) {
+        InventoryView view = player.getOpenInventory();
+        return (view.getType() == InventoryType.CRAFTING || view.getType() == InventoryType.CREATIVE)
+                && view.getBottomInventory() == player.getInventory();
     }
 
     /**
