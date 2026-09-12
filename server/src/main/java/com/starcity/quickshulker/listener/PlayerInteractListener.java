@@ -35,7 +35,7 @@ public class PlayerInteractListener implements Listener {
         this.growthUnlockManager = plugin.getGrowthUnlockManager();
     }
 
-    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = false)
     public void onPlayerInteract(PlayerInteractEvent event) {
         // 只处理右键空气
         if (event.getAction() != Action.RIGHT_CLICK_AIR) {
