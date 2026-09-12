@@ -47,7 +47,13 @@ public class ClickOpenManager {
 
     private void save() {
         try {
-            data.save(file);
+            FileConfiguration latest = YamlConfiguration.loadConfiguration(file);
+            for (String key : data.getKeys(true)) {
+                if (key.startsWith(KEY_PREFIX) && data.getConfigurationSection(key) == null) {
+                    latest.set(key, data.get(key));
+                }
+            }
+            latest.save(file);
         } catch (IOException e) {
             plugin.getLogger().warning("保存点击打开开关状态时出错: " + e.getMessage());
         }

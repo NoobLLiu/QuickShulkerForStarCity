@@ -24,8 +24,8 @@ public class QuickShulkerPlugin extends JavaPlugin {
     private OpenHandler openHandler;
     private GrowthUnlockManager growthUnlockManager;
 
-    // kyrptonaught quickshulker 协议：litematica-printer(INVOKE 方案) 打开的频道
-    private static final String KYRPTONAUGHT_OPEN_SHULKER_CHANNEL = "quickshulker:open_shulker_packet";
+    // Kyrptonaught QuickShulker / litematica-printer INVOKE 使用的服务端频道。
+    public static final String OPEN_SHULKER_CHANNEL = "quickshulker:open_shulker_packet";
 
     @Override
     public void onEnable() {
@@ -62,9 +62,12 @@ public class QuickShulkerPlugin extends JavaPlugin {
         getCommand("quickshulker").setTabCompleter(commandExecutor);
 
         // 注册 kyrptonaught quickshulker 协议（litematica-printer INVOKE 方案）
+        KyrptonaughtPacketListener packetListener =
+                new KyrptonaughtPacketListener(this, openHandler, openableRegistry);
         getServer().getMessenger().registerIncomingPluginChannel(this,
-                KYRPTONAUGHT_OPEN_SHULKER_CHANNEL,
-                new KyrptonaughtPacketListener(this, openHandler, openableRegistry));
+                OPEN_SHULKER_CHANNEL, packetListener);
+        // 入站消息不依赖出站注册，但注册两端可以让 Paper 在握手期间明确声明该通道。
+        getServer().getMessenger().registerOutgoingPluginChannel(this, OPEN_SHULKER_CHANNEL);
 
         // 玩家加入时检查成长值解锁状态（提示未解锁玩家）
         getServer().getPluginManager().registerEvents(new Listener() {
@@ -87,9 +90,9 @@ public class QuickShulkerPlugin extends JavaPlugin {
     }
 
     public void reload() {
-        reloadConfig();
-        pluginConfig = new PluginConfig(this);
-        growthUnlockManager = new GrowthUnlockManager(this, pluginConfig);
+        if (pluginConfig != null) {
+            pluginConfig.reload();
+        }
     }
 
     public static QuickShulkerPlugin getInstance() {

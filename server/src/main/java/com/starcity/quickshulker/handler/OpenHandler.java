@@ -114,7 +114,16 @@ public class OpenHandler {
      * 打开指定物品的潜影盒GUI
      */
     public boolean openShulker(Player player, ItemStack shulkerItem, int slotIndex) {
-        if (!registry.isOpenable(shulkerItem)) {
+        if (!isValidPlayerSlot(slotIndex) || !registry.isOpenable(shulkerItem)) {
+            return false;
+        }
+
+        // 调用方传入的物品必须仍然是该玩家该槽位中的同一堆物品，
+        // 避免异步/延迟打开时把内容显示给错误的盒子。
+        ItemStack currentItem = getItemFromSlot(player, slotIndex);
+        if (currentItem == null
+                || !currentItem.isSimilar(shulkerItem)
+                || currentItem.getAmount() != shulkerItem.getAmount()) {
             return false;
         }
 
@@ -129,6 +138,7 @@ public class OpenHandler {
 
         // 记录打开上下文（保存初始快照，供实时同步对比）
         OpenContext context = new OpenContext(player.getUniqueId(), slotIndex, shulkerItem.clone(), shulkerInv);
+        context.setLastSavedItem(shulkerItem.clone());
         context.setLastSavedContents(cloneContents(shulkerInv.getContents()));
         openContexts.put(player.getUniqueId(), context);
 
@@ -166,7 +176,7 @@ public class OpenHandler {
      * 保存潜影盒内容到物品
      */
     private void saveShulkerContents(Player player, OpenContext context) {
-        ItemStack originalItem = context.getOriginalItem();
+        ItemStack lastSavedItem = context.getLastSavedItem();
         int slotIndex = context.getSlotIndex();
         Inventory shulkerInv = context.getShulkerInventory();
 
@@ -175,7 +185,9 @@ public class OpenHandler {
 
         // 如果物品类型变了（被移走了），以世界现状为准：
         // 不写回、也不另找位置发放，避免把内容写进错误的盒子造成复制
-        if (currentItem == null || currentItem.getType() != originalItem.getType()) {
+        if (currentItem == null || lastSavedItem == null
+                || !currentItem.isSimilar(lastSavedItem)
+                || currentItem.getAmount() != lastSavedItem.getAmount()) {
             return;
         }
 
@@ -186,6 +198,7 @@ public class OpenHandler {
         setItemInSlot(player, slotIndex, currentItem);
 
         // 刷新快照
+        context.setLastSavedItem(currentItem.clone());
         context.setLastSavedContents(cloneContents(shulkerInv.getContents()));
     }
 
@@ -194,6 +207,10 @@ public class OpenHandler {
             return player.getInventory().getItemInOffHand();
         }
         return player.getInventory().getItem(slot);
+    }
+
+    private static boolean isValidPlayerSlot(int slot) {
+        return (slot >= 0 && slot < 36) || slot == 40;
     }
 
     private void setItemInSlot(Player player, int slot, ItemStack item) {
@@ -247,6 +264,7 @@ public class OpenHandler {
         private final int slotIndex;
         private final ItemStack originalItem;
         private final Inventory shulkerInventory;
+        private ItemStack lastSavedItem;
         private ItemStack[] lastSavedContents;
 
         public OpenContext(UUID playerUUID, int slotIndex, ItemStack originalItem, Inventory shulkerInventory) {
@@ -260,6 +278,8 @@ public class OpenHandler {
         public int getSlotIndex() { return slotIndex; }
         public ItemStack getOriginalItem() { return originalItem; }
         public Inventory getShulkerInventory() { return shulkerInventory; }
+        public ItemStack getLastSavedItem() { return lastSavedItem; }
+        public void setLastSavedItem(ItemStack lastSavedItem) { this.lastSavedItem = lastSavedItem; }
         public ItemStack[] getLastSavedContents() { return lastSavedContents; }
         public void setLastSavedContents(ItemStack[] lastSavedContents) { this.lastSavedContents = lastSavedContents; }
     }
