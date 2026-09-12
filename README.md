@@ -12,6 +12,7 @@
 |------|------|
 | 右键空气打开 | 手持潜影盒右键空气即可打开，支持全部 17 种颜色 |
 | 命令打开 | 使用 `/qs open` 或 `/quickshulker open` 打开手中的潜影盒 |
+| 投影打印机联动 | 兼容 litematica-printer 的 `CLICK_SLOT` 和 `INVOKE` 两种快捷潜影盒模式 |
 | 音效反馈 | 打开/关闭潜影盒时播放对应音效 |
 | 权限控制 | 细粒度权限节点，支持与其他权限插件配合 |
 
@@ -28,6 +29,7 @@
 | 命令 | 别名 | 说明 | 权限 |
 |------|------|------|------|
 | `/quickshulker open` | `/qs open` | 打开手中的潜影盒 | `quickshulker.open` |
+| `/quickshulker clickopen [on\|off\|toggle]` | `/qs clickopen ...` | 开关背包右键打开，供打印机 `CLICK_SLOT` 模式使用 | `quickshulker.clickopen` |
 | `/quickshulker reload` | `/qs reload` | 重载配置文件 | `quickshulker.reload` |
 
 ## 权限
@@ -37,6 +39,7 @@
 | `quickshulker.use` | 使用 QuickShulker 基础功能 | 所有玩家 |
 | `quickshulker.open` | 打开手中的潜影盒 | 所有玩家 |
 | `quickshulker.command` | 使用命令 | 所有玩家 |
+| `quickshulker.clickopen` | 使用背包右键打开和打印机点击打开 | 所有玩家 |
 | `quickshulker.reload` | 重载配置 | OP |
 
 ## 配置
@@ -64,6 +67,19 @@ not-shulker-message: '&c你手中没有潜影盒'
 ```
 
 修改后使用 `/qs reload` 热重载配置。
+
+### litematica-printer 联动
+
+Paper 插件注册并接收 QuickShulker 原生协议频道
+`quickshulker:open_shulker_packet`，载荷为一个大端序 `int`，因此打印机的
+`INVOKE` 模式可以直接调用服务端打开潜影盒。该模式需要客户端安装打印机依赖的
+QuickShulker 模组；不安装客户端模组时，请在打印机中选择 `CLICK_SLOT` 模式，并执行：
+
+```text
+/qs clickopen on
+```
+
+插件会在玩家自己的背包界面拦截打印机发送的右键容器点击，并在下一 tick 打开对应潜影盒。
 
 ## 构建
 

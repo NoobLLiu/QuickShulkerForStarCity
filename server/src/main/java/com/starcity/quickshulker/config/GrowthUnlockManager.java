@@ -53,7 +53,7 @@ public class GrowthUnlockManager {
 
     private void loadPermanentUnlocks() {
         String section = UNLOCK_PREFIX + "permanent";
-        if (data.contains(section)) {
+        if (data.getConfigurationSection(section) != null) {
             for (String key : data.getConfigurationSection(section).getKeys(false)) {
                 try {
                     UUID uuid = UUID.fromString(key);
@@ -92,13 +92,9 @@ public class GrowthUnlockManager {
         double growth = getGrowthValue(player);
         lastCheckedGrowth = growth;
 
-        // API 不可用（返回 -1）时视为未解锁
+        // 可选依赖不存在时不应阻断基础功能。
         if (growth < 0) {
-            if (config.isUnlockEnabled()) {
-                player.sendMessage(formatMessage(config.getLockedMessage(),
-                        config.getUnlockRequiredGrowth(), 0));
-            }
-            return false;
+            return true;
         }
 
         double required = config.getUnlockRequiredGrowth();
@@ -211,7 +207,13 @@ public class GrowthUnlockManager {
 
     private void saveData() {
         try {
-            data.save(dataFile);
+            FileConfiguration latest = YamlConfiguration.loadConfiguration(dataFile);
+            for (String key : data.getKeys(true)) {
+                if (key.startsWith(UNLOCK_PREFIX) && data.getConfigurationSection(key) == null) {
+                    latest.set(key, data.get(key));
+                }
+            }
+            latest.save(dataFile);
         } catch (IOException e) {
             plugin.getLogger().warning("保存成长值解锁状态时出错: " + e.getMessage());
         }

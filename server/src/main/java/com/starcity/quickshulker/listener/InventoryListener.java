@@ -84,8 +84,8 @@ public class InventoryListener implements Listener {
             // 数字键1-9热键交换：检查对应快捷栏槽位
             int hotbarButton = event.getHotbarButton();
             if (hotbarButton >= 0) {
-                int hotbarRawSlot = event.getView().getTopInventory().getSize() + hotbarButton;
-                if (ShulkerUtil.isShulkerBox(event.getView().getItem(hotbarRawSlot))) return true;
+                if (ShulkerUtil.isShulkerBox(
+                        event.getWhoClicked().getInventory().getItem(hotbarButton))) return true;
             }
             // F键与副手交换：副手里是潜影盒则禁止
             if (ShulkerUtil.isShulkerBox(event.getWhoClicked().getInventory().getItemInOffHand())) {
@@ -104,7 +104,8 @@ public class InventoryListener implements Listener {
         if (!(event.getWhoClicked() instanceof Player player)) return;
         if (openHandler.getOpenContext(player.getUniqueId()) == null) return;
 
-        if (ShulkerUtil.isShulkerBox(event.getOldCursor())) {
+        if (ShulkerUtil.isShulkerBox(event.getOldCursor())
+                || event.getNewItems().values().stream().anyMatch(ShulkerUtil::isShulkerBox)) {
             event.setCancelled(true);
         }
     }

@@ -12,6 +12,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -34,7 +35,7 @@ public class PlayerInteractListener implements Listener {
         this.growthUnlockManager = plugin.getGrowthUnlockManager();
     }
 
-    @EventHandler(priority = EventPriority.NORMAL)
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onPlayerInteract(PlayerInteractEvent event) {
         // 只处理右键空气
         if (event.getAction() != Action.RIGHT_CLICK_AIR) {
@@ -47,7 +48,7 @@ public class PlayerInteractListener implements Listener {
         }
 
         Player player = event.getPlayer();
-        ItemStack item = player.getInventory().getItemInMainHand();
+        ItemStack item = event.getItem();
 
         // 检查是否是可打开的物品
         if (!registry.isOpenable(item)) {
@@ -55,7 +56,8 @@ public class PlayerInteractListener implements Listener {
         }
 
         // 检查权限
-        if (!player.hasPermission("quickshulker.open")) {
+        if (!player.hasPermission("quickshulker.use")
+                || !player.hasPermission("quickshulker.open")) {
             if (!config.getNoPermissionMessage().isEmpty()) {
                 player.sendMessage(config.getNoPermissionMessage());
             }
@@ -68,7 +70,11 @@ public class PlayerInteractListener implements Listener {
         }
 
         // 打开潜影盒
-        if (openHandler.openShulkerInHand(player)) {
+        EquipmentSlot hand = event.getHand();
+        int slot = hand == EquipmentSlot.OFF_HAND
+                ? 40
+                : player.getInventory().getHeldItemSlot();
+        if (openHandler.openShulker(player, item, slot)) {
             // 取消事件，防止触发其他右键行为
             event.setCancelled(true);
         }

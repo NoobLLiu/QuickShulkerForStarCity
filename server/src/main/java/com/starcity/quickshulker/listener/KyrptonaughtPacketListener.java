@@ -4,7 +4,9 @@ import com.starcity.quickshulker.QuickShulkerPlugin;
 import com.starcity.quickshulker.config.GrowthUnlockManager;
 import com.starcity.quickshulker.handler.OpenHandler;
 import com.starcity.quickshulker.registry.OpenableRegistry;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.ByteArrayInputStream;
@@ -37,46 +39,71 @@ public class KyrptonaughtPacketListener implements org.bukkit.plugin.messaging.P
 
     @Override
     public void onPluginMessageReceived(String channel, Player player, byte[] message) {
+        if (!QuickShulkerPlugin.OPEN_SHULKER_CHANNEL.equals(channel)
+                || message == null || message.length != Integer.BYTES) {
+            return;
+        }
+
         try {
             DataInputStream in = new DataInputStream(new ByteArrayInputStream(message));
             int windowSlot = in.readInt();
 
-            // 解析为玩家背包索引。
-            // 打印机只在主背包区(窗口槽位 9-35)自动取料，此时窗口槽位号 == 玩家背包索引；
-            // 额外兼容热键(0-8)与副手(40)。
-            int invSlot = resolveInventorySlot(windowSlot);
-            if (invSlot < 0) {
-                plugin.getLogger().info("忽略无法解析的潜影盒打开请求，窗口槽位: " + windowSlot);
-                return;
+            // Paper 通常在主线程触发插件消息；若实现在线程外调用，切回服务器主线程。
+            if (Bukkit.isPrimaryThread()) {
+                openRequestedSlot(player, windowSlot);
+            } else {
+                Bukkit.getScheduler().runTask(plugin, () -> openRequestedSlot(player, windowSlot));
             }
-
-            ItemStack item = getItemInSlot(player, invSlot);
-            if (item == null || !registry.isOpenable(item)) {
-                return;
-            }
-
-            // 成长值门槛检查
-            if (!growthUnlockManager.checkAndNotify(player)) {
-                return;
-            }
-
-            openHandler.openShulker(player, item, invSlot);
         } catch (IOException e) {
             plugin.getLogger().warning("处理 quickshulker:open_shulker_packet 时出错: " + e.getMessage());
         }
     }
 
+    private void openRequestedSlot(Player player, int windowSlot) {
+        if (!player.isOnline()
+                || player.getOpenInventory().getType() != InventoryType.CRAFTING
+                || player.getOpenInventory().getBottomInventory() != player.getInventory()) {
+            return;
+        }
+
+        // 解析为玩家背包索引。上游协议发送的是原版 InventoryMenu 窗口槽位：
+        // 主背包 9-35、快捷栏 36-44、副手 45。
+        int invSlot = resolveInventorySlot(windowSlot);
+        if (invSlot < 0) {
+            return;
+        }
+
+        ItemStack item = getItemInSlot(player, invSlot);
+        if (item == null || !registry.isOpenable(item)) {
+            return;
+        }
+
+        if (!player.hasPermission("quickshulker.use")
+                || !player.hasPermission("quickshulker.open")) {
+            return;
+        }
+
+        if (!growthUnlockManager.checkAndNotify(player)) {
+            return;
+        }
+
+        openHandler.openShulker(player, item, invSlot);
+    }
+
     /**
-     * 将玩家背包界面窗口槽位号映射为玩家背包索引；无效/盔甲区返回 -1。
+     * 将原版 InventoryMenu 槽位号映射为 Bukkit PlayerInventory 索引；无效/盔甲区返回 -1。
      */
     private int resolveInventorySlot(int windowSlot) {
-        if (windowSlot >= 0 && windowSlot <= 35) {
-            return windowSlot; // 主背包 + 快捷栏，窗口槽位号与背包索引一致
+        if (windowSlot >= 9 && windowSlot <= 35) {
+            return windowSlot; // 玩家主背包，容器槽位与玩家背包索引一致
         }
-        if (windowSlot == 40) {
-            return 40;        // 副手
+        if (windowSlot >= 36 && windowSlot <= 44) {
+            return windowSlot - 36; // 快捷栏容器槽位 -> 玩家背包索引 0-8
         }
-        return -1;            // 盔甲区等：无法打开潜影盒
+        if (windowSlot == 45) {
+            return 40; // 原版副手菜单槽位45 -> 玩家背包索引40
+        }
+        return -1; // 合成、盔甲等槽位不允许打开
     }
 
     private ItemStack getItemInSlot(Player player, int slot) {

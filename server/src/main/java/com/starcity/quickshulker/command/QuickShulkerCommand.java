@@ -64,7 +64,9 @@ public class QuickShulkerCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        if (!player.hasPermission("quickshulker.open")) {
+        if (!player.hasPermission("quickshulker.use")
+                || !player.hasPermission("quickshulker.open")
+                || !player.hasPermission("quickshulker.command")) {
             player.sendMessage(config.getNoPermissionMessage());
             return;
         }
@@ -93,7 +95,9 @@ public class QuickShulkerCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        if (!player.hasPermission("quickshulker.clickopen")) {
+        if (!player.hasPermission("quickshulker.use")
+                || !player.hasPermission("quickshulker.clickopen")
+                || !player.hasPermission("quickshulker.command")) {
             player.sendMessage(config.getNoPermissionMessage());
             return;
         }
@@ -152,6 +156,11 @@ public class QuickShulkerCommand implements CommandExecutor, TabCompleter {
                 }
             }
             return completions;
+        }
+        if (args.length == 2 && "clickopen".equalsIgnoreCase(args[0])) {
+            return Arrays.stream(new String[]{"on", "off", "enable", "disable", "toggle"})
+                    .filter(option -> option.startsWith(args[1].toLowerCase()))
+                    .toList();
         }
         return List.of();
     }
