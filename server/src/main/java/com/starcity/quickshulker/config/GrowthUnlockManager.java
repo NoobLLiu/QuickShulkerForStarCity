@@ -20,7 +20,7 @@ import java.util.UUID;
  *
  * 解锁模式：
  * - dynamic：每次实时查询成长值，不足即禁止。
- * - permanent：首次达标后写入本插件 data.xml，之后即使成长值下降也不重新锁定。
+ * - permanent：首次达标后写入本插件 data.yml，之后即使成长值下降也不重新锁定。
  */
 public class GrowthUnlockManager {
 

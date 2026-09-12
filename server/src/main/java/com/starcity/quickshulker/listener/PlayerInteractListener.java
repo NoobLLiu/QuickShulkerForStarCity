@@ -48,6 +48,12 @@ public class PlayerInteractListener implements Listener {
         }
 
         Player player = event.getPlayer();
+        // PlayerInteractEvent 可能分别为主手和副手触发；主手有潜影盒时，
+        // 忽略副手事件，避免一次右键连续打开两个盒子。
+        if (event.getHand() == EquipmentSlot.OFF_HAND
+                && registry.isOpenable(player.getInventory().getItemInMainHand())) {
+            return;
+        }
         ItemStack item = event.getItem();
 
         // 检查是否是可打开的物品

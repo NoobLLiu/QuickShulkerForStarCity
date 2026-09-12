@@ -64,11 +64,32 @@ public class InventoryListener implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onInventoryClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
-        if (openHandler.getOpenContext(player.getUniqueId()) == null) return;
+        OpenHandler.OpenContext context = openHandler.getOpenContext(player.getUniqueId());
+        if (context == null) return;
 
-        if (involvesShulkerBox(event)) {
+        if (involvesOpenSlot(event, player, context) || involvesShulkerBox(event)) {
             event.setCancelled(true);
         }
+    }
+
+    /**
+     * 保护当前正在打开的盒子所在槽位，即使点击事件本身没有携带潜影盒物品，
+     * 也不能通过快捷键把该槽位换走。
+     */
+    private boolean involvesOpenSlot(InventoryClickEvent event, Player player,
+                                     OpenHandler.OpenContext context) {
+        int openSlot = context.getSlotIndex();
+        if (event.getClickedInventory() instanceof org.bukkit.inventory.PlayerInventory
+                && event.getSlot() == openSlot) {
+            return true;
+        }
+
+        return switch (event.getClick()) {
+            case NUMBER_KEY -> event.getHotbarButton() == openSlot;
+            case SWAP_OFFHAND -> openSlot == 40
+                    || openSlot == player.getInventory().getHeldItemSlot();
+            default -> false;
+        };
     }
 
     /**
@@ -87,8 +108,9 @@ public class InventoryListener implements Listener {
                 if (ShulkerUtil.isShulkerBox(
                         event.getWhoClicked().getInventory().getItem(hotbarButton))) return true;
             }
-            // F键与副手交换：副手里是潜影盒则禁止
-            if (ShulkerUtil.isShulkerBox(event.getWhoClicked().getInventory().getItemInOffHand())) {
+            // F键与副手交换：主手或副手里是潜影盒则禁止
+            if (ShulkerUtil.isShulkerBox(event.getWhoClicked().getInventory().getItemInMainHand())
+                    || ShulkerUtil.isShulkerBox(event.getWhoClicked().getInventory().getItemInOffHand())) {
                 return true;
             }
         }
